@@ -17,8 +17,6 @@ from distutils.sysconfig import get_python_version, get_config_vars, get_python_
 from Cython.Distutils import build_ext
 
 
-import numpy as np
-
 INFO = {
     'version': '0.1',
     }
@@ -39,60 +37,17 @@ for arg in args:
         sys.argv.remove(arg)
 
 
-def make_metadata(path):
-    """Build a metadata file."""
-    md = {"HDF5_DIR": HDF5_DIR,
-          }
-    md.update(INFO)
-
-    # write the metadata file
-    with open(path, 'w') as f:
-        json.dump(md, f, indent=2)
-
-    return md
-
-
 # Thanks to http://patorjk.com/software/taag/  
 # and http://www.chris.com/ascii/index.php?art=creatures/dragons
 # for ASCII art inspiriation
 
-pyne_logo = """\
-
-                                  /   \       
- _                        )      ((   ))     (                          
-(@)                      /|\      ))_((     /|\                          
-|-|                     / | \    (/\|/\)   / | \                      (@) 
-| | -------------------/--|-voV---\`|'/--Vov-|--\---------------------|-|
-|-|                         '^`   (o o)  '^`                          | |
-| |                               `\Y/'                               |-|
-|-|                                                                   | |
-| |        /\             ___           __  __             /\         |-|
-|-|       /^~\           / _ \_   _  /\ \ \/__\           /^~\        | |  
-| |       /^~\          / /_)/ | | |/  \/ /_\             /^~\        |-|
-|-|       /^~\         / ___/| |_| / /\  //__             /^~\        | | 
-| |       ^||`         \/     \__, \_\ \/\__/             ^||`        |-|  
-|-|        ||                |____/                        ||         | | 
-| |       ====                                            ====        |-|
-|-|                                                                   | |
-| |                                                                   |-|
-|-|___________________________________________________________________| |
-(@)              l   /\ /         ( (       \ /\   l                `\|-|
-                 l /   V           \ \       V   \ l                  (@)
-                 l/                _) )_          \I                   
-                                   `\ /'
-                                     `  
-"""
-
 ###########################################
 ### Set compiler options for extensions ###
 ###########################################
-pyt_dir = os.path.join('pyne')
+pyt_dir = os.path.join('jsoncpp')
 cpp_dir = os.path.join('cpp')
 dat_dir = os.path.join('data')
 
-
-# Get numpy include dir
-numpy_include = np.get_include()
 
 # HDF5 stuff
 #posix_hdf5_libs = ["z", "m", "hdf5", "hdf5_hl",]
@@ -252,15 +207,15 @@ def cpp_ext(name, sources, libs=None, use_hdf5=False):
                      [s for s in sources if not any([s.endswith(suf) for suf in ['cpp', 'pyx']])]
 
     ext["libraries"] = []
-    ext['include_dirs'] = [pyt_dir, cpp_dir, numpy_include]
+    ext['include_dirs'] = [pyt_dir, cpp_dir]
     if 0 < len(HDF5_DIR):
         ext['include_dirs'].append(os.path.join(HDF5_DIR, 'include'))
     ext['define_macros'] = [('JSON_IS_AMALGAMATION', None)]
     ext['language'] = "c++"
 
     # may need to be more general
-    ext['library_dirs'] = ['build/lib/pyne/lib',
-                           'build/lib.{0}-{1}/pyne/lib'.format(get_platform(), get_python_version()),
+    ext['library_dirs'] = ['build/lib/jsoncpp/lib',
+                           'build/lib.{0}-{1}/jsoncpp/lib'.format(get_platform(), get_python_version()),
                            ]
     if os.name == 'nt':
         ext['library_dirs'] += [SITE_PACKAGES, os.path.join(HDF5_DIR, 'dll'),]
@@ -271,11 +226,6 @@ def cpp_ext(name, sources, libs=None, use_hdf5=False):
     #ext['runtime_library_dirs'] = ['${ORIGIN}/lib', '${ORIGIN}']
     ext['runtime_library_dirs'] = ['${ORIGIN}/lib', '${ORIGIN}', '${ORIGIN}/.', 
                                    '${ORIGIN}/../lib', '${ORIGIN}/..',]
-    #ext['runtime_library_dirs'] = ['${ORIGIN}/lib', '${ORIGIN}', '${ORIGIN}/.'] + \
-    #                              [os.path.abspath(p) for p in ext['library_dirs']] + \
-    #                              [os.path.abspath(p + '/pyne/lib') for p in sys.path] + \
-    #                              [os.path.abspath(p + '/pyne') for p in sys.path] + \
-    #                              [os.path.abspath(p) for p in sys.path]
 
     if sys.platform == 'linux2':
         #ext["extra_compile_args"] = ["-Wno-strict-prototypes"]
@@ -327,65 +277,20 @@ def cpp_ext(name, sources, libs=None, use_hdf5=False):
 # 
 exts = []
 
-# Pure C/C++ share libraries
-# pyne lib
-exts.append(cpp_ext("pyne.lib.libpyne", ['jsoncpp.cpp', 'pyne.cpp']))
-
-# nucname
-exts.append(cpp_ext("pyne.lib.libpyne_nucname", ['nucname.cpp'], ['pyne']))
-
-# data
-exts.append(cpp_ext("pyne.lib.libpyne_data", ['data.cpp'], ['pyne', 'pyne_nucname'], True))
-
-# material
-exts.append(cpp_ext("pyne.lib.libpyne_material", ['material.cpp'], ['pyne', 'pyne_nucname', 'pyne_data'], True))
-
-# enrichment
-exts.append(cpp_ext("pyne.lib.libpyne_enrichment", ['enrichment.cpp'], ['pyne_material',]))
-
-
 # Python extension modules
-# STL converters
-exts.append(cpp_ext("pyne.stlconverters", ['stlconverters.pyx']))
-
 # JsonCpp Wrapper
-exts.append(cpp_ext("pyne.jsoncpp", ['jsoncpp.pyx'], ['pyne']))
+exts.append(cpp_ext("jsoncpp", ['jsoncpp.cpp', 'jsoncpp.pyx']))
 
-# pyne_config
-exts.append(cpp_ext("pyne.pyne_config", ['pyne_config.pyx'], ['pyne']))
-
-
-# _utils
-exts.append(cpp_ext("pyne._utils", ['_utils.pyx']))
-
-# nucname
-exts.append(cpp_ext("pyne.nucname", ['nucname.pyx'], ['pyne', 'pyne_nucname']))
-
-# data
-exts.append(cpp_ext("pyne.data", ['data.pyx'], ['pyne', 'pyne_nucname', 'pyne_data'], True))
-
-# material
-exts.append(cpp_ext("pyne.material", ['material.pyx'], ['pyne', 'pyne_nucname', 'pyne_data', 'pyne_material'], True))
-
-# ace
-exts.append(cpp_ext("pyne.ace", ['ace.pyx'], ['pyne', 'pyne_nucname']))
-
-# xs.models
-exts.append(cpp_ext("pyne.xs.models", ['xs/models.pyx'], ['pyne', 'pyne_nucname']))
-
-# material
-exts.append(cpp_ext("pyne.enrichment", ['enrichment.pyx'], ['pyne_enrichment', 'pyne_material']))
 
 
 ##########################
 ### Setup Package Data ###
 ##########################
-packages = ['pyne', 'pyne.lib', 'pyne.dbgen', 'pyne.xs']
+packages = ['jsoncpp',]
 
-pack_dir = {'pyne': 'pyne', 'pyne.dbgen': 'pyne/dbgen', 'pyne.xs': 'pyne/xs'}
+pack_dir = {'jsoncpp': 'jsoncpp',}
 
-pack_data = {'pyne': ['includes/*.h', 'includes/pyne/*.pxd', '*.json'],
-             'pyne.dbgen': ['*.html'],
+pack_data = {'jsoncpp': ['includes/*.h', 'includes/jsoncpp/*.pxd', '*.json'],
             }
 
 ext_modules=[Extension(**ext) for ext in exts]
@@ -397,86 +302,52 @@ for e in ext_modules:
 
 
 # Utility scripts
-scripts=['scripts/nuc_data_make']
-if os.name == 'nt':
-    scripts = [s + '.bat' for s in scripts]
+scripts=[]
 
 
 def cleanup(mdpath="<None>"):
     # Clean includes after setup has run
-    if os.path.exists('pyne/includes'):
-        remove_tree('pyne/includes')
+    if os.path.exists('jsoncpp/includes'):
+        remove_tree('jsoncpp/includes')
 
     # clean up metadata file
     if os.path.exists(mdpath):
         os.remove(mdpath)
 
 
-def final_message(setup_success=True, metadata=None):
+def final_message(setup_success=True):
     if setup_success:
         return
-        
-    if metadata is not None:
-        msg = "\n\nCURRENT METADATA:\n"
-        for k, v in sorted(metadata.items()):
-            msg += "  {0} = {1}\n".format(k, repr(v))
-        print msg[:-1]
-
-    if os.name != 'nt':
-        return
-
-    try: 
-        import tables as tb
-        h5ver = tb.getHDF5Version()
-    except ImportError:
-        h5ver = '1.8.5-patch1'
-
-    msg = ("\n\nIf compilation is failing with HDF5 issues please try the "
-           "following steps:\n\n"
-           "    1. Install EPD [1].\n"
-           "    2. Download the HDF5 Windows binarys from [2].\n"
-           "    3. Unzip them to the C-drive (C:\\hdf5-{h5ver}).\n"
-           "    4. Re-run setup with the '--hdf5' option:\n\n"
-           "        python setup.py install --user --hdf5=C:\\hdf5-{h5ver}\n\n"
-           "Should this still fail, please report your problem to pyne-dev@googlegroups.com\n\n"
-           "[1] http://www.enthought.com/products/epd.php\n"
-           "[2] http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-{h5ver}/bin/windows/\n"
-           ).format(h5ver=h5ver)
+    msg = "Compilation failed!"        
     print msg
 
 
 ###################
 ### Call setup! ###
 ###################
-def pyne_setup():
-    print pyne_logo
-
+def jsoncpp_setup():
     # clean includes dir and recopy files over
-    if os.path.exists('pyne/includes'):
-        remove_tree('pyne/includes')
+    if os.path.exists('jsoncpp/includes'):
+        remove_tree('jsoncpp/includes')
 
-    mkpath('pyne/includes')
+    mkpath('jsoncpp/includes')
     for header in glob.glob('cpp/*.h'):
-        copy_file(header, 'pyne/includes')
+        copy_file(header, 'jsoncpp/includes')
 
-    mkpath('pyne/includes/pyne')
-    for header in glob.glob('pyne/*.pxd'):
-        copy_file(header, 'pyne/includes/pyne')
-
-    # Create metadata file
-    mdpath = "pyne/metadata.json"
-    md = make_metadata(mdpath)
+    mkpath('jsoncpp/includes/jsoncpp')
+    for header in glob.glob('jsoncpp/*.pxd'):
+        copy_file(header, 'jsoncpp/includes/jsoncpp')
 
     # Platform specific setup
     platform_setup.get(sys.platform, lambda: None)()
     
     setup_kwargs = {
-        "name": "pyne",
+        "name": "pyjsoncpp",
         "version": INFO['version'],
-        "description": 'Python for Nuclear Engineering',
-        "author": 'PyNE Development Team',
+        "description": 'Python bindings for JsonCpp',
+        "author": 'Anthony Scopatz',
         "author_email": 'scopatz@gmail.com',
-        "url": 'http://pyne.github.com/',
+        "url": 'http://scopatz.github.com/',
         "packages": packages,
         "package_dir": pack_dir,
         "package_data": pack_data,
@@ -491,9 +362,9 @@ def pyne_setup():
         rtn = setup(**setup_kwargs)
         setup_success= True
     finally:
-        cleanup(mdpath)
-        final_message(setup_success, metadata=md)
+        cleanup()
+        final_message(setup_success)
 
 
 if __name__ == "__main__":
-    pyne_setup()
+    jsoncpp_setup()
