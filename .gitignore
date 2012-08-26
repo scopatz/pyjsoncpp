@@ -2,7 +2,6 @@
 doc/build/
 build/
 *egg-info/
-build_nuc_data/
 
 # Ignore temp files
 *.pyc
@@ -11,10 +10,7 @@ build_nuc_data/
 *~
 
 # Ignore Cython'd files
-pyne/*.c
-pyne/*.cpp
-pyne/*/*.cpp
+jsoncpp/*.c
+jsoncpp/*.cpp
+jsoncpp/*/*.cpp
 
-# Ignore specific files
-examples/BASE_TAPE9.INP
-pyne/tests/test.file
