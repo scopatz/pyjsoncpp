@@ -18,13 +18,12 @@ this repository.  Then run the setup commands from the base directory::
 
 These bindings require on Cython v0.17+.  The tests rely on nose.
 
-
 =============
 Usage Example
 =============
 The Value object is the main interface for 
 Values may be converted to and from regular Python types.  These have the 
-normal behaviour for their type.
+normal behavior for their type.
 
 .. code-block:: python
 
@@ -48,5 +47,46 @@ normal behaviour for their type.
     >>> len(v)
     42
 
+The Python Value class provides a view into the underlying C++ class.
+This allows you to create several views into the same data.  For example, 
+start with the following nested dictionary:
 
+.. code-block:: python
 
+    # make a nested dict and a view into a top-level item
+    >>> v = Value({'a': {'b': 14}})
+    >>> view_a = v['a']
+    >>> view_a 
+    {"b":14}
+
+    # add an item to the view
+    >>> view_a['c'] = 16
+    >>> view_a 
+    {"b":14,"c":16}
+
+    # this item is present in the original value
+    >>> v
+    {"a":{"b":14,"c":16}}
+
+Furthermore, there is a Reader class for converting JSON strings or files into 
+Value instances.  There are also two writer classes, FastWriter and StyledWriter, 
+for converting Value instances into compact and human-readable strings respectively.
+For example:
+
+.. code-block:: python
+
+    >>> v = Value({'hello': 1})
+    >>> fw = FastWriter()
+    >>> fw.write(v)
+    '{"hello":1}\n'
+
+    >>> sw = StyledWriter()
+    >>> print sw.write(v)
+    {
+       "hello" : 1
+    }
+
+    >>> r = Reader()
+    >>> new_v = r.parse('{"hello":1}\n')
+    >>> isinstance(new_v, Value)
+    True
