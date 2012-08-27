@@ -1,120 +1,49 @@
-PyNE: Python for Nuclear Engineering
-====================================
-The pyne project aims to provide a common set of tools for nuclear 
-science and engineering needs.
+PyJsonCpp: Python bindings for JsonCpp
+=======================================
+The `JsonCpp project`_ provides an excellent in-memory JSON data structure as well 
+as string writers and parsers.  Here are Python bindings for JsonCpp using Cython.
 
-If you are interested in the package itself, or would like to help
-and contribute, please let us know either on the mailing list 
-(pyne-dev@googlegroups.com) or `github`_.
-
-.. _github: https://github.com/pyne/pyne
-
-
-.. install-start
+.. _JsonCpp project: http://jsoncpp.sourceforge.net/
 
 .. _install:
 
 ============
 Installation
 ============
--------------
-Dependencies
--------------
-PyNE has the following dependencies:
-
-   #. `NumPy <http://numpy.scipy.org/>`_
-   #. `SciPy <http://www.scipy.org/>`_
-   #. `Cython <http://cython.org/>`_
-   #. `HDF5 <http://www.hdfgroup.org/HDF5/>`_
-   #. `PyTables <http://www.pytables.org/>`_
-
-------
-Binary
-------
-A binary distribution of PyNE is hopefully coming soon.  Until then, please
-install from source.
-
-
-.. _install_source:
-
-------
-Source
-------
-Installing PyNE from source is a two-step process.  First, download and 
-unzip the source (`zip`_, `tar`_).  Then run the following commands from 
-the unzipped directory::
+Installing PyJsonCpp from source is easy.  First, download or clone
+this repository.  Then run the setup commands from the base directory::
 
     cd pyne/
     python setup.py install --user
-    nuc_data_make
 
-The ``setup.py`` command compiles and installs the PyNE source code.
-The ``nuc_data_make`` builds and installs a database of nuclear data.
-Unfortunately, this must be done as a second step because most nuclear 
-data is under some form of license restriction or export control which 
-prevents the developers from distributing it with PyNE.  However, the 
-``nuc_data_make`` program (which is installed by ``setup.py``) will
-do its best to find relevant nuclear data elsewhere on your machine
-or from public sources on the internet.  
+These bindings require on Cython v0.17+.  The tests rely on nose.
 
 
-.. _win_install:
+=============
+Usage Example
+=============
+Values may be converted to and from regular Python types.  These have the 
+normal behaviour for their type.
 
-********************
-Windows Installation
-********************
-Depending on the current state of your system, installing on Windows may 
-be more or less involved.  We recommend the following procedure.  This 
-ensures that all dependencies are installed correctly and PyNE has been 
-built and tested using this setup.
+.. code-block:: python
 
-#. Install the Enthought Python Distribution (`EPD`_).
-#. Determine your HDF5 version by running the following command::
+    >>> from jsoncpp import Value, Reader, FastWriter, StyledWriter
 
-    python -c "import tables; print tables.getHDF5Version()"
+    >>> v = Value({'name': 'Terry Jones', 'age': 42.0})
+    >>> v['name']
+    'Terry Jones'
 
-#. Download the `HDF5 Windows binaries`_ for your version.
-   Navigate to something like ``http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-{h5ver}/bin/windows/``
-   and select the appropriate 32- or 64-bit file.  Do not download the source-only files.
-#. Unzip HDF5 to the C-drive (``C:\\hdf5-{h5ver}``).
-#. Download and unzip the source (`zip`_). 
-#. Move into the source directory and run the PyNE setup command with the ``--hdf5`` option::
+    >>> v = Value("No one expects the Spanish Inquisition!!!!")
+    >>> len(v)
+    42
 
-    cd pyne\
-    python setup.py install --user --hdf5=C:\\hdf5-{h5ver}
-           
-And voila, everything will have installed correctly.  Should this still fail, 
-please report your problem to pyne-dev@googlegroups.com.
+    >>> v = Value([1, 2, 5, 3])
+    >>> v[1:-1]
+    [2, 5]
 
-********************
-Linux + EPD
-********************
-Assuming you are on some flavor of Linux and you primarily use Python 
-through the Enthought Python Distribution (`EPD`_), you can install PyNE
-to be based off of the EPD packages.
+    >>> v[1:-1] = [42, 65]
+    >>> v
+    [1, 42, 65, 3]
 
-First, you'll need to know where on your system EPD is installed.
-Call this variable ``EPD_DIR``; for example if you have installed it 
-to your home directory then ``EPD_DIR=$HOME/epd``.  You'll then need
-to add the following lines to your ``~/.bashrc`` file *after* 
-installing EPD but *prior to* installing PyNE::
 
-    export PATH=$EPD_DIR/bin:$HOME/.local/bin:$PATH
-    export CPATH=$EPD_DIR/include:$CPATH
-    export LD_LIBRARY_PATH=$EPD_DIR/lib:$LD_LIBRARY_PATH
 
-Or as in the example::
-
-    export PATH=$HOME/epd/bin:$HOME/.local/bin:$PATH
-    export CPATH=$HOME/epd/include:$CPATH
-    export LD_LIBRARY_PATH=$HOME/epd/lib:$LD_LIBRARY_PATH
-
-You may now proceed with the PyNE install as above.
-
-.. _zip: https://github.com/pyne/pyne/zipball/0.1-rc
-.. _tar: https://github.com/pyne/pyne/tarball/0.1-rc
-
-.. _EPD: http://www.enthought.com/products/epd.php
-.. _HDF5 Windows binaries: http://www.hdfgroup.org/ftp/HDF5/releases/
-
-.. install-end
