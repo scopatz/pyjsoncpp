@@ -22,6 +22,7 @@ These bindings require on Cython v0.17+.  The tests rely on nose.
 =============
 Usage Example
 =============
+The Value object is the main interface for 
 Values may be converted to and from regular Python types.  These have the 
 normal behaviour for their type.
 
@@ -30,20 +31,22 @@ normal behaviour for their type.
     >>> from jsoncpp import Value, Reader, FastWriter, StyledWriter
 
     >>> v = Value({'name': 'Terry Jones', 'age': 42.0})
+    >>> v['quest'] = "To find the grail."
+    >>> v.keys()
+    ['age', 'name', 'quest']
     >>> v['name']
     'Terry Jones'
-
-    >>> v = Value("No one expects the Spanish Inquisition!!!!")
-    >>> len(v)
-    42
 
     >>> v = Value([1, 2, 5, 3])
     >>> v[1:-1]
     [2, 5]
-
     >>> v[1:-1] = [42, 65]
     >>> v
     [1, 42, 65, 3]
+
+    >>> v = Value("No one expects the Spanish Inquisition!!!!")
+    >>> len(v)
+    42
 
 
 
