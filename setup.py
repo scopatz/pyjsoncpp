@@ -15,6 +15,7 @@ from distutils.file_util import copy_file, move_file
 from distutils.dir_util import mkpath, remove_tree
 from distutils.sysconfig import get_python_version, get_config_vars, get_python_lib
 from Cython.Distutils import build_ext
+from Cython.Compiler.Version import version as CYTHON_VERSION
 
 
 INFO = {
@@ -304,6 +305,19 @@ for e in ext_modules:
 # Utility scripts
 scripts=[]
 
+def make_cython_version():
+    pxi = ("# Cython compile-time version information\n"
+           "DEF CYTHON_VERSION_MAJOR = {major}\n"
+           "DEF CYTHON_VERSION_MINOR = {minor}\n"
+           "DEF CYTHON_VERSION_BUILD = {build}")
+    cyver = CYTHON_VERSION.split('-')[0].split('.')
+    while len(cyver) < 3:
+        cyver = cyver + [0]
+    cyver = dict([(k, int(cv)) for k, cv in zip(['major', 'minor', 'build'], cyver)])
+    pxi = pxi.format(**cyver)
+    with open('jsoncpp/includes/cython_version.pxi', 'w') as f:
+        f.write(pxi)
+
 
 def cleanup(mdpath="<None>"):
     # Clean includes after setup has run
@@ -333,10 +347,10 @@ def jsoncpp_setup():
     mkpath('jsoncpp/includes')
     for header in glob.glob('cpp/*.h'):
         copy_file(header, 'jsoncpp/includes')
-
     mkpath('jsoncpp/includes/jsoncpp')
     for header in glob.glob('jsoncpp/*.pxd'):
         copy_file(header, 'jsoncpp/includes/jsoncpp')
+    make_cython_version()
 
     # Platform specific setup
     platform_setup.get(sys.platform, lambda: None)()
